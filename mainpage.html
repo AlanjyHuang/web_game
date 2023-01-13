@@ -18,8 +18,17 @@ source: https://gist.github.com/tanmaykm/5111225
             }
             var owner
             var owner_array = []
+            function timer() {
+                var counter = 30
 
+                var interval = setInterval(() => {
+                    document.getElementById('timer').innerHTML = counter
+                    counter--
+                    if (counter == 0) clearInterval(interval)
+                }, 1000)
+            }
             var s //socket object for connection
+
             function doInit() {
                 try {
                     for (var i = 0; i < 5; i++) {
@@ -31,8 +40,8 @@ source: https://gist.github.com/tanmaykm/5111225
                     owner = document.getElementById('user').value
                     var host = 'ws://localhost:4545/' //設定socker server的ip:port
                     /*if(window.location.hostname) {
-                                                    		host = "ws://" + window.location.hostname + ":4545/";
-                                                    	}*/
+                                                                        		host = "ws://" + window.location.hostname + ":4545/";
+                                                                        	}*/
 
                     s = new WebSocket(host) //建立socket元件
                     //設定幾個主要事件
@@ -56,11 +65,14 @@ source: https://gist.github.com/tanmaykm/5111225
                         cellOwner = strs[1]
                         cellID = strs[0]
                         if (strs[2] == 'change') {
-                            owner_array[cellID[0]][cellID[1]] = strs[1]
-                            if (cellOwner == owner) changeBack(cellID, 'green')
+                            if (strs[1] == 'null') owner_array[cellID[0]][cellID[1]] = null
+                            else owner_array[cellID[0]][cellID[1]] = strs[1]
+                            if (owner_array[cellID[0]][cellID[1]] == null) changeBack(cellID, 'White')
+                            else if (cellOwner == owner) changeBack(cellID, 'green')
                             else changeBack(cellID, 'red')
-                        }
-                        //解讀各段訊息的內容
+                        } else if (strs[0] == 'timer') {
+                            timer()
+                        } //解讀各段訊息的內容
                         else {
                             setCell(cellID, cellOwner) //改格子的符號
                         }
@@ -92,14 +104,10 @@ source: https://gist.github.com/tanmaykm/5111225
                             document.getElementById(id).innerHTML = now - 1
                             s.send(id + ',' + owner + ',' + 'attack')
                             if (now - 1 == 0) {
-                                owner_array[id[0]][id[1]] = owner
-                                s.send(id + ',' + owner + ',' + 'change')
+                                owner_array[id[0]][id[1]] = null
+                                s.send(id + ',' + 'null' + ',' + 'change')
                             }
                         } else log_msg('click bug')
-                        //若格子尚未被選
-                        //取得使用的符號
-                        //let user = document.getElementById('user').value
-                        //把格子id跟使用的符號傳給socket server
                     }
                 })
             }
@@ -115,8 +123,8 @@ source: https://gist.github.com/tanmaykm/5111225
                     } else if (owner_array[id[0]][id[1]] != clicker) {
                         document.getElementById(id).innerHTML = now - 1
                         if (now - 1 == 0) {
-                            owner_array[id[0]][id[1]] = clicker
-                            s.send(id + ',' + clicker + ',' + 'change')
+                            owner_array[id[0]][id[1]] = null
+                            s.send(id + ',' + 'null' + ',' + 'change')
                         }
                     } else {
                         log_msg('!!!!!bug!!!!!!!!')
@@ -127,7 +135,9 @@ source: https://gist.github.com/tanmaykm/5111225
     </head>
     <body onload="doInit()">
         <h3>搶地遊戲</h3>
+        <h1 id="timer">0</h1>
         <br />
+        <button onclick='(function(){ s.send("timer") })();'>start</button> <br />
         輸入使用者名稱<input type="text" value="O" id="user" />
         <table border="1" width="500px" height="500px">
             <tr>
