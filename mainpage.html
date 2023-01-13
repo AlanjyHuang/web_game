@@ -17,14 +17,22 @@ source: https://gist.github.com/tanmaykm/5111225
                 console.log(msg)
             }
             var owner
+            var owner_array = []
+
             var s //socket object for connection
             function doInit() {
                 try {
+                    for (var i = 0; i < 5; i++) {
+                        owner_array.push([])
+                        for (var j = 0; j < 5; j++) {
+                            owner_array[i].push(null)
+                        }
+                    }
                     owner = document.getElementById('user').value
                     var host = 'ws://localhost:4545/' //設定socker server的ip:port
                     /*if(window.location.hostname) {
-                      		host = "ws://" + window.location.hostname + ":4545/";
-                      	}*/
+                                                    		host = "ws://" + window.location.hostname + ":4545/";
+                                                    	}*/
 
                     s = new WebSocket(host) //建立socket元件
                     //設定幾個主要事件
@@ -41,13 +49,21 @@ source: https://gist.github.com/tanmaykm/5111225
                     //當server送訊息來時
                     s.onmessage = function (e) {
                         log_msg('message: ' + e.data)
+                        log_msg(owner_array)
                         //e.data是Socket server送來的訊息
                         //用, 來切割訊息
                         strs = e.data.split(',')
+                        cellOwner = strs[1]
+                        cellID = strs[0]
+                        if (strs[2] == 'change') {
+                            owner_array[cellID[0]][cellID[1]] = strs[1]
+                            if (cellOwner == owner) changeBack(cellID, 'green')
+                            else changeBack(cellID, 'red')
+                        }
                         //解讀各段訊息的內容
-                        cellID = strs[0] //格子的ID
-                        cellOwner = strs[1] //使用的符號
-                        setCell(cellID, cellOwner) //改格子的符號
+                        else {
+                            setCell(cellID, cellOwner) //改格子的符號
+                        }
                     }
                 } catch (ex) {
                     log_msg('connection exception:' + ex)
@@ -58,25 +74,54 @@ source: https://gist.github.com/tanmaykm/5111225
                 //逐一設定onclick事件
                 cells.forEach(function (el) {
                     el.onclick = function () {
+                        //  log_msg(owner_array)
                         id = this.id
-                        //   console.log(id)
-
+                        now = parseInt(document.getElementById(id).innerText)
+                        //log_msg(id[0])
+                        log_msg('click origin owner', owner_array[id[0]][id[1]])
+                        if (owner_array[id[0]][id[1]] == null) {
+                            owner_array[id[0]][id[1]] == owner
+                            log_msg('new owner', owner_array[id[0]][id[1]])
+                            s.send(id + ',' + owner + ',' + 'change')
+                            s.send(id + ',' + owner + ',' + 'attack')
+                            document.getElementById(id).innerHTML = now + 1
+                        } else if (owner_array[id[0]][id[1]] == owner) {
+                            document.getElementById(id).innerHTML = now + 1
+                            s.send(id + ',' + owner + ',' + 'defense')
+                        } else if (owner_array[id[0]][id[1]] != owner) {
+                            document.getElementById(id).innerHTML = now - 1
+                            s.send(id + ',' + owner + ',' + 'attack')
+                            if (now - 1 == 0) {
+                                owner_array[id[0]][id[1]] = owner
+                                s.send(id + ',' + owner + ',' + 'change')
+                            }
+                        } else log_msg('click bug')
                         //若格子尚未被選
                         //取得使用的符號
                         //let user = document.getElementById('user').value
                         //把格子id跟使用的符號傳給socket server
-                        s.send(id + ',' + owner)
                     }
                 })
             }
-
+            function changeBack(id, color) {
+                document.getElementById(id).style.backgroundColor = color
+            }
             //設定格子的符號
-            function setCell(id, owner) {
+            function setCell(id, clicker) {
                 now = parseInt(document.getElementById(id).innerText)
-                log_msg(now)
-                if (owner == owner) {
-                    document.getElementById(id).innerHTML = now + 1
-                } else document.getElementById(id).innerHTML = now - 1
+                if (clicker != owner) {
+                    if (owner_array[id[0]][id[1]] == clicker) {
+                        document.getElementById(id).innerHTML = now + 1
+                    } else if (owner_array[id[0]][id[1]] != clicker) {
+                        document.getElementById(id).innerHTML = now - 1
+                        if (now - 1 == 0) {
+                            owner_array[id[0]][id[1]] = clicker
+                            s.send(id + ',' + clicker + ',' + 'change')
+                        }
+                    } else {
+                        log_msg('!!!!!bug!!!!!!!!')
+                    }
+                }
             }
         </script>
     </head>
