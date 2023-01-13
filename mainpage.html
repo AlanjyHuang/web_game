@@ -109,8 +109,9 @@ source: https://gist.github.com/tanmaykm/5111225
                         //log_msg(id[0])
                         log_msg('click origin owner', owner_array[id[0]][id[1]])
                         if (owner_array[id[0]][id[1]] == null) {
-                            owner_array[id[0]][id[1]] == owner
+                            owner_array[id[0]][id[1]] = owner
                             log_msg('new owner', owner_array[id[0]][id[1]])
+                            s.send(id + ',' + owner + ',' + 'change')
                             s.send(id + ',' + owner + ',' + 'change')
                             s.send(id + ',' + owner + ',' + 'attack')
                             document.getElementById(id).innerHTML = now + 1
