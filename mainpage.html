@@ -24,11 +24,28 @@ source: https://gist.github.com/tanmaykm/5111225
                 var interval = setInterval(() => {
                     document.getElementById('timer').innerHTML = counter
                     counter--
-                    if (counter == 0) clearInterval(interval)
+                    if (counter < 0) {
+                        clearInterval(interval)
+                        count_total()
+                    }
                 }, 1000)
             }
             var s //socket object for connection
-
+            function count_total() {
+                var me = 0
+                var other = 0
+                for (var i = 0; i < 5; i++) {
+                    for (var j = 0; j < 5; j++) {
+                        // log_msg(i.toString() + j.toString())
+                        var num = parseInt(document.getElementById(i.toString() + j.toString()).innerHTML)
+                        if (owner_array[i][j] == owner) me += num
+                        else other += num
+                    }
+                }
+                log_msg(me, other)
+                alert('The game is over \nYou score: ' + me + '\nYour opponet score: ' + other)
+                document.location.reload()
+            }
             function doInit() {
                 try {
                     for (var i = 0; i < 5; i++) {
@@ -139,6 +156,7 @@ source: https://gist.github.com/tanmaykm/5111225
         <br />
         <button onclick='(function(){ s.send("timer") })();'>start</button> <br />
         輸入使用者名稱<input type="text" value="O" id="user" />
+        <button onclick="count_total()">total</button>
         <table border="1" width="500px" height="500px">
             <tr>
                 <td class="cell" id="00">0</td>
