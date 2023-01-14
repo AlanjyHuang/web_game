@@ -34,16 +34,32 @@ source: https://gist.github.com/tanmaykm/5111225
             function count_total() {
                 var me = 0
                 var other = 0
+                var me2 = 0
+                var other2 = 0
                 for (var i = 0; i < 5; i++) {
                     for (var j = 0; j < 5; j++) {
                         // log_msg(i.toString() + j.toString())
                         var num = parseInt(document.getElementById(i.toString() + j.toString()).innerHTML)
-                        if (owner_array[i][j] == owner) me += num
-                        else other += num
+                        if (owner_array[i][j] == owner) {
+                            me += num
+                            me2 += 1
+                        } else if (owner_array[i][j] != null) {
+                            other += num
+                            other2 += 1
+                        }
                     }
                 }
                 log_msg(me, other)
-                alert('The game is over \nYou score: ' + me + '\nYour opponet score: ' + other)
+                alert(
+                    'The game is over \nYou score: ' +
+                        me +
+                        '\n Your boxes: ' +
+                        me2 +
+                        '\nYour opponent score: ' +
+                        other +
+                        '\nYour opponent boxes: ' +
+                        other2
+                )
                 document.location.reload()
             }
             function doInit() {
